@@ -1,6 +1,48 @@
 # CarND-Controls-MPC
 Self-Driving Car Engineer Nanodegree Program
 
+
+---
+
+## Implementation
+
+### The Model
+
+(Student describes their model in detail. This includes the state, actuators and update equations.)
+
+The veichle has 6 state: x and y coordinates, orientation angle (psi), and velocity, as well as cross-track error (cte)and psi error (epsi). Actuator outputs are acceleration(a) and delta (steering angle). The below equations are used to calculate the current timestamp state from previous timestamp step.
+
+![update equation image](./update-equation.png)
+
+### Timestep Length and Elapsed Duration (N & dt)
+
+(Student discusses the reasoning behind the chosen N (timestep length) and dt (elapsed duration between timesteps) values. Additionally the student details the previous values tried.)
+
+The values chosen for N and dt are 25 and 0.05, reference course materials. The duration(product of N and dt) should be a few seconds, at most. Beyond that horizon, the environment will change enough that it won't make sense to predict any further into the future.
+
+The length of the cost vector is determined by N, Thus N determines the number of variables optimized by the MPC. This is also the major driver of computational cost.
+
+MPC attempts to approximate a continuous reference trajectory by means of discrete paths between actuations. Larger values of dt result in less frequent actuations, which makes it harder to accurately approximate a continuous reference trajectory. This is sometimes called "discretization error".
+
+I also tried other values 10/0.1, 20/0.05...
+
+
+### Polynomial Fitting and MPC Preprocessing
+
+(If the student preprocesses waypoints, the vehicle state, and/or actuators prior to the MPC procedure it is described.)
+
+
+The waypoints are preprocessed by transforming them to the vehicle's coordinate system, then fit a polynomial from the waypoints. The initial x,y coordinates of vehicle state is (0,0), the orientation angle is also zero.
+
+
+### Model Predictive Control with Latency
+
+(The student implements Model Predictive Control that handles a 100 millisecond latency. Student provides details on how they deal with latency.)
+
+In a real car, an actuation command won't execute instantly - there will be a delay as the command propagates through the system. A realistic delay might be on the order of 100 milliseconds.
+
+I chosen the approach of running the simulation using the vehicle model starting from the current state for the duration of the latency. The resulting state from the simulation is the new initial state for MPC. see Main.cpp line 186.
+
 ---
 
 ## Dependencies
