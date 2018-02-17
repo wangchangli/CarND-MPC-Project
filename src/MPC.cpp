@@ -56,7 +56,7 @@ class FG_eval {
     const double cte_weight = 3000;  //cte error
     const double epsi_weight = 3000;  // orientation error
     const double v_weight   = 1;     //velocity
-    const double delta_weight = 5;   // control angle
+    const double delta_weight = 1000;   // control angle
     const double a_weight = 5;       //acceleration 
     const double delta_a_bind_weight = 700;
     const double delta_smooth_weight = 10000;  //steering smoothing
