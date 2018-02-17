@@ -6,8 +6,8 @@
 using CppAD::AD;
 
 // TODO: Set the timestep length and duration
-size_t N = 25;
-double dt = 0.05;
+size_t N = 10;
+double dt = 0.1;
 
 size_t x_start = 0;
 size_t y_start = x_start + N;
@@ -53,13 +53,13 @@ class FG_eval {
     fg[0] = 0;
 
     // weights for each cost function part, adjusted manually 
-    const double cte_weight = 500;  //cte error
-    const double epsi_weight = 500;  // orientation error
+    const double cte_weight = 3000;  //cte error
+    const double epsi_weight = 3000;  // orientation error
     const double v_weight   = 1;     //velocity
     const double delta_weight = 5;   // control angle
     const double a_weight = 5;       //acceleration 
-    const double delta_smooth_weight = 50000;  //steering smoothing
-    const double a_smooth_weight = 5;   //acceleration smoothing 
+    const double delta_smooth_weight = 200;  //steering smoothing
+    const double a_smooth_weight = 10;   //acceleration smoothing 
 
     // Cost function
     // TODO: Define the cost related the reference state and
@@ -73,9 +73,10 @@ class FG_eval {
     }
 
     // Minimize the use of actuators.
-    for (int t = 0; t < N - 1; t++) {
+    for (int t = 0; t < N - 1; t++ ) {
       fg[0] += delta_weight * CppAD::pow(vars[delta_start + t], 2);
       fg[0] += a_weight * CppAD::pow(vars[a_start + t], 2);
+      fg[0] += 700*CppAD::pow(vars[delta_start + t] * vars[v_start + t], 2);
     }
 
     // Minimize the value gap between sequential actuations.
@@ -84,7 +85,7 @@ class FG_eval {
       fg[0] += a_smooth_weight * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
     }    
 
-    // Initialization & constraints
+    // Initialization & constraints 
 
     fg[1 + x_start] = vars[x_start];
     fg[1 + y_start] = vars[y_start];
@@ -114,6 +115,12 @@ class FG_eval {
       // Only consider the actuation at time t.
       AD<double> delta0 = vars[delta_start + t - 1];
       AD<double> a0 = vars[a_start + t - 1];
+
+      // deal latency: use previous timestep's (100ms a timestep) actuations output
+      if (t > 1) { 
+        delta0 = vars[delta_start + t - 2];
+        a0 = vars[a_start + t - 2];
+      }
 
       AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * CppAD::pow(x0, 2) + coeffs[3] * CppAD::pow(x0, 3);
       AD<double> psides0 = CppAD::atan(coeffs[1] + 2 * coeffs[2] * x0 + 3 * coeffs[3] * CppAD::pow(x0, 2));
