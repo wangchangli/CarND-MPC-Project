@@ -18,13 +18,13 @@ The veichle has 6 state: x and y coordinates, orientation angle (psi), and veloc
 
 (Student discusses the reasoning behind the chosen N (timestep length) and dt (elapsed duration between timesteps) values. Additionally the student details the previous values tried.)
 
-The values chosen for N and dt are 25 and 0.05, reference course materials. The duration(product of N and dt) should be a few seconds, at most. Beyond that horizon, the environment will change enough that it won't make sense to predict any further into the future.
+The values chosen for N and dt are 10 and 0.1, reference course materials. The duration(product of N and dt) should be a few seconds, at most. Beyond that horizon, the environment will change enough that it won't make sense to predict any further into the future.
 
 The length of the cost vector is determined by N, Thus N determines the number of variables optimized by the MPC. This is also the major driver of computational cost.
 
 MPC attempts to approximate a continuous reference trajectory by means of discrete paths between actuations. Larger values of dt result in less frequent actuations, which makes it harder to accurately approximate a continuous reference trajectory. This is sometimes called "discretization error".
 
-I also tried other values 10/0.1, 20/0.05...
+I also tried other values 15/0.1, 20/0.1...
 
 
 ### Polynomial Fitting and MPC Preprocessing
@@ -41,7 +41,9 @@ The waypoints are preprocessed by transforming them to the vehicle's coordinate 
 
 In a real car, an actuation command won't execute instantly - there will be a delay as the command propagates through the system. A realistic delay might be on the order of 100 milliseconds.
 
-I chosen the approach of running the simulation using the vehicle model starting from the current state for the duration of the latency. The resulting state from the simulation is the new initial state for MPC. see Main.cpp line 186.
+I chosen the approach of running the simulation using the vehicle model starting from the current state for the duration of the latency. The resulting state from the simulation is the new initial state for MPC. see Main.cpp line 186, and then, use previous(not current) timestep's (100ms a timestep) actuations output to calculate next timestamp state, see MPC.cpp lines 121-124.
+
+
 
 ---
 

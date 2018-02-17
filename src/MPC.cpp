@@ -58,7 +58,8 @@ class FG_eval {
     const double v_weight   = 1;     //velocity
     const double delta_weight = 5;   // control angle
     const double a_weight = 5;       //acceleration 
-    const double delta_smooth_weight = 200;  //steering smoothing
+    const double delta_a_bind_weight = 700;
+    const double delta_smooth_weight = 10000;  //steering smoothing
     const double a_smooth_weight = 10;   //acceleration smoothing 
 
     // Cost function
@@ -76,7 +77,7 @@ class FG_eval {
     for (int t = 0; t < N - 1; t++ ) {
       fg[0] += delta_weight * CppAD::pow(vars[delta_start + t], 2);
       fg[0] += a_weight * CppAD::pow(vars[a_start + t], 2);
-      fg[0] += 700*CppAD::pow(vars[delta_start + t] * vars[v_start + t], 2);
+      fg[0] += delta_a_bind_weight*CppAD::pow(vars[delta_start + t] * vars[v_start + t], 2);
     }
 
     // Minimize the value gap between sequential actuations.
@@ -95,7 +96,7 @@ class FG_eval {
     fg[1 + epsi_start] = vars[epsi_start];   
 
 
-    for (int t = 1; t < N; t++) {
+     for (int t = 1; t < N; t++) {
       // The state at time t+1 .
       AD<double> x1 = vars[x_start + t];
       AD<double> y1 = vars[y_start + t];
@@ -117,7 +118,7 @@ class FG_eval {
       AD<double> a0 = vars[a_start + t - 1];
 
       // deal latency: use previous timestep's (100ms a timestep) actuations output
-      if (t > 1) { 
+      if (t > 1) {   
         delta0 = vars[delta_start + t - 2];
         a0 = vars[a_start + t - 2];
       }
@@ -138,10 +139,10 @@ class FG_eval {
 
       fg[1 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
       fg[1 + y_start + t] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
-      fg[1 + psi_start + t] = psi1 - (psi0 + v0 * delta0 / Lf * dt);
+      fg[1 + psi_start + t] = psi1 - (psi0 - v0/Lf * delta0 * dt);
       fg[1 + v_start + t] = v1 - (v0 + a0 * dt);
       fg[1 + cte_start + t] = cte1 - ((f0 - y0) + (v0 * CppAD::sin(epsi0) * dt));
-      fg[1 + epsi_start + t] = epsi1 - ((psi0 - psides0) + v0 * delta0 / Lf * dt);
+      fg[1 + epsi_start + t] = epsi1 - ((psi0 - psides0) - v0/Lf * delta0 * dt);
     }
 
   }
